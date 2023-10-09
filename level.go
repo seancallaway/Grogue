@@ -108,3 +108,16 @@ func (level *Level) createTiles() {
 	}
 	level.Tiles = tiles
 }
+
+// Draw the current level to 'screen'.
+func (level *Level) Draw(screen *ebiten.Image) {
+	gd := NewGameData()
+	for x := 0; x < gd.ScreenWidth; x++ {
+		for y := 0; y < gd.ScreenHeight; y++ {
+			tile := level.Tiles[GetIndexFromCoords(x, y)]
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
+			screen.DrawImage(tile.Image, op)
+		}
+	}
+}
