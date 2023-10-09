@@ -6,11 +6,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Game struct{}
+type Game struct {
+	Levels []Level
+}
 
 // Creates a new Game object and initializes the data.
 func NewGame() *Game {
 	g := &Game{}
+	g.Levels = append(g.Levels, NewLevel())
 	return g
 }
 
@@ -19,11 +22,20 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-
+	gd := NewGameData()
+	for x := 0; x < gd.ScreenWidth; x++ {
+		for y := 0; y < gd.ScreenHeight; y++ {
+			tile := g.Levels[0].Tiles[GetIndexFromCoords(x, y)]
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
+			screen.DrawImage(tile.Image, op)
+		}
+	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 320, 240
+	gd := NewGameData()
+	return gd.TileWidth * gd.ScreenWidth, gd.TileHeight * gd.ScreenHeight
 }
 
 func main() {
