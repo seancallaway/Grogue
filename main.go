@@ -4,17 +4,22 @@ import (
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type Game struct{}
+
+// Creates a new Game object and initializes the data.
+func NewGame() *Game {
+	g := &Game{}
+	return g
+}
 
 func (g *Game) Update() error {
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	ebitenutil.DebugPrint(screen, "Hello, World!")
+
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -22,9 +27,11 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	ebiten.SetWindowSize(640, 480)
-	ebiten.SetWindowTitle("Hello, World!")
-	if err := ebiten.RunGame(&Game{}); err != nil {
+	g := NewGame()
+	ebiten.SetWindowTitle("Grogue")
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+
+	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
 }
