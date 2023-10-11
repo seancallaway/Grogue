@@ -105,6 +105,7 @@ func (level *Level) createTiles() {
 	room2 := NewRectangularRoom(40, 15, 10, 15)
 	level.Rooms = append(level.Rooms, room1, room2)
 
+	// Carve out rooms
 	for _, room := range level.Rooms {
 		x1, x2, y1, y2 := room.Interior()
 		for x := x1; x <= x2; x++ {
