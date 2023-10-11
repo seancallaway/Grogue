@@ -7,15 +7,17 @@ import (
 )
 
 type Game struct {
-	Levels   []Level
-	Entities []Entity
-	Player   *Entity
+	Levels       []Level
+	CurrentLevel *Level
+	Entities     []Entity
+	Player       *Entity
 }
 
 // Creates a new Game object and initializes the data.
 func NewGame() *Game {
 	g := &Game{}
 	g.Levels = append(g.Levels, NewLevel())
+	g.CurrentLevel = &g.Levels[0]
 
 	player, err := NewEntity(40, 25, "player")
 	if err != nil {
@@ -27,6 +29,7 @@ func NewGame() *Game {
 }
 
 func (g *Game) Update() error {
+	HandleInput(g)
 	return nil
 }
 
