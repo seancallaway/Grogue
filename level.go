@@ -3,6 +3,7 @@ package main
 import (
 	_ "image/png"
 	"log"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -100,13 +101,14 @@ func (level *Level) createTiles() {
 			tiles[idx] = wall
 		}
 	}
+	level.Tiles = tiles
 
 	room1 := NewRectangularRoom(25, 15, 10, 15)
 	room2 := NewRectangularRoom(40, 15, 10, 15)
 	level.Rooms = append(level.Rooms, room1, room2)
 
 	// Carve out rooms
-	for _, room := range level.Rooms {
+	for roomNum, room := range level.Rooms {
 		x1, x2, y1, y2 := room.Interior()
 		for x := x1; x <= x2; x++ {
 			for y := y1; y <= y2; y++ {
@@ -115,12 +117,13 @@ func (level *Level) createTiles() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				tiles[idx] = floor
+				level.Tiles[idx] = floor
 			}
 		}
+		if roomNum > 0 {
+			level.tunnelBetween(&level.Rooms[roomNum-1], &level.Rooms[roomNum])
+		}
 	}
-
-	level.Tiles = tiles
 }
 
 // Draw the current level to 'screen'.
@@ -163,4 +166,52 @@ func (r *RectangularRoom) Center() (int, int) {
 // Returns the tile coordinates of the interior of the RectangularRoom.
 func (r *RectangularRoom) Interior() (int, int, int, int) {
 	return r.X1 + 1, r.X2 - 1, r.Y1 + 1, r.Y2 - 1
+}
+
+// Create a vertical tunnel.
+func (level *Level) createVerticalTunnel(y1 int, y2 int, x int) {
+	gd := NewGameData()
+	for y := min(y1, y2); y < max(y1, y2)+1; y++ {
+		idx := GetIndexFromCoords(x, y)
+
+		if idx > 0 && idx < gd.ScreenHeight*gd.ScreenWidth {
+			floor, err := NewTile(x*gd.TileWidth, y*gd.TileHeight, TileFloor)
+			if err != nil {
+				log.Fatal(err)
+			}
+			level.Tiles[idx] = floor
+		}
+	}
+}
+
+// Create a horizontal tunnel.
+func (level *Level) createHorizontalTunnel(x1 int, x2 int, y int) {
+	gd := NewGameData()
+	for x := min(x1, x2); x < max(x1, x2)+1; x++ {
+		idx := GetIndexFromCoords(x, y)
+
+		if idx > 0 && idx < gd.ScreenHeight*gd.ScreenWidth {
+			floor, err := NewTile(x*gd.TileWidth, y*gd.TileHeight, TileFloor)
+			if err != nil {
+				log.Fatal(err)
+			}
+			level.Tiles[idx] = floor
+		}
+	}
+}
+
+// Tunnel from this first room to second room.
+func (level *Level) tunnelBetween(first *RectangularRoom, second *RectangularRoom) {
+	startX, startY := first.Center()
+	endX, endY := second.Center()
+
+	if rand.Intn(2) == 0 {
+		// Tunnel horizontally, then vertically
+		level.createHorizontalTunnel(startX, endX, startY)
+		level.createVerticalTunnel(startY, endY, endX)
+	} else {
+		// Tunnel vertically, then horizontally
+		level.createVerticalTunnel(startY, endY, startX)
+		level.createHorizontalTunnel(startX, endX, endY)
+	}
 }
