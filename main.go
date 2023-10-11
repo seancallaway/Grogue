@@ -9,6 +9,7 @@ import (
 type Game struct {
 	Levels   []Level
 	Entities []Entity
+	Player   *Entity
 }
 
 // Creates a new Game object and initializes the data.
@@ -21,6 +22,7 @@ func NewGame() *Game {
 		log.Fatal(err)
 	}
 	g.Entities = append(g.Entities, player)
+	g.Player = &g.Entities[0]
 	return g
 }
 
