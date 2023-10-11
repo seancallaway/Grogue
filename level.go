@@ -14,6 +14,9 @@ type GameData struct {
 	ScreenHeight int
 	TileWidth    int
 	TileHeight   int
+	MaxRoomSize  int
+	MinRoomSize  int
+	MaxRooms     int
 }
 
 // Creates a new instance of the static game data.
@@ -23,6 +26,9 @@ func NewGameData() GameData {
 		ScreenHeight: 50,
 		TileWidth:    16,
 		TileHeight:   16,
+		MaxRoomSize:  10,
+		MinRoomSize:  6,
+		MaxRooms:     30,
 	}
 	return gd
 }
@@ -166,6 +172,11 @@ func (r *RectangularRoom) Center() (int, int) {
 // Returns the tile coordinates of the interior of the RectangularRoom.
 func (r *RectangularRoom) Interior() (int, int, int, int) {
 	return r.X1 + 1, r.X2 - 1, r.Y1 + 1, r.Y2 - 1
+}
+
+// Determines if this room intersects with otherRoom.
+func (r *RectangularRoom) IntersectsWith(otherRoom RectangularRoom) bool {
+	return r.X1 <= otherRoom.X2 && r.X2 >= otherRoom.X1 && r.Y1 <= otherRoom.Y2 && r.Y2 >= otherRoom.Y1
 }
 
 // Create a vertical tunnel.
