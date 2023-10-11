@@ -109,9 +109,29 @@ func (level *Level) createTiles() {
 	}
 	level.Tiles = tiles
 
-	room1 := NewRectangularRoom(25, 15, 10, 15)
-	room2 := NewRectangularRoom(40, 15, 10, 15)
-	level.Rooms = append(level.Rooms, room1, room2)
+	for i := 0; i <= gd.MaxRooms; i++ {
+		// generate width and height as random numbers between gd.MinRoomSize and gd.MaxRoomSize
+		width := rand.Intn(gd.MaxRoomSize-gd.MinRoomSize+1) + gd.MinRoomSize
+		height := rand.Intn(gd.MaxRoomSize-gd.MinRoomSize+1) + gd.MinRoomSize
+
+		xPos := rand.Intn(gd.ScreenWidth - width)
+		yPos := rand.Intn(gd.ScreenHeight - height)
+
+		newRoom := NewRectangularRoom(xPos, yPos, width, height)
+
+		isOkay := true
+		for _, room := range level.Rooms {
+			// check through all existing rooms to ensure newRoom doesn't intersect
+			if newRoom.IntersectsWith(room) {
+				isOkay = false
+				break
+			}
+		}
+
+		if isOkay {
+			level.Rooms = append(level.Rooms, newRoom)
+		}
+	}
 
 	// Carve out rooms
 	for roomNum, room := range level.Rooms {
