@@ -7,6 +7,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/norendren/go-fov/fov"
 )
 
 type GameData struct {
@@ -80,14 +81,16 @@ func GetIndexFromCoords(x int, y int) int {
 }
 
 type Level struct {
-	Tiles []MapTile
-	Rooms []RectangularRoom
+	Tiles      []MapTile
+	Rooms      []RectangularRoom
+	PlayerView *fov.View
 }
 
 // Creates a new Level object
 func NewLevel() Level {
 	l := Level{}
 	l.createTiles()
+	l.PlayerView = fov.New()
 	return l
 }
 
@@ -157,10 +160,12 @@ func (level *Level) Draw(screen *ebiten.Image) {
 	gd := NewGameData()
 	for x := 0; x < gd.ScreenWidth; x++ {
 		for y := 0; y < gd.ScreenHeight; y++ {
-			tile := level.Tiles[GetIndexFromCoords(x, y)]
-			op := &ebiten.DrawImageOptions{}
-			op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
-			screen.DrawImage(tile.Image, op)
+			if level.PlayerView.IsVisible(x, y) {
+				tile := level.Tiles[GetIndexFromCoords(x, y)]
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
+				screen.DrawImage(tile.Image, op)
+			}
 		}
 	}
 }
@@ -245,4 +250,18 @@ func (level *Level) tunnelBetween(first *RectangularRoom, second *RectangularRoo
 		level.createVerticalTunnel(startY, endY, startX)
 		level.createHorizontalTunnel(startX, endX, endY)
 	}
+}
+
+// Determine if tile coordinates are on the screen.
+func (level Level) InBounds(x int, y int) bool {
+	gd := NewGameData()
+	if x < 0 || x > gd.ScreenWidth || y < 0 || y > gd.ScreenHeight {
+		return false
+	}
+	return true
+}
+
+// Determines if a tile at a given coordinate can be seen through.
+func (level Level) IsOpaque(x int, y int) bool {
+	return level.Tiles[GetIndexFromCoords(x, y)].Opaque
 }
