@@ -19,7 +19,8 @@ func NewGame() *Game {
 	g.Levels = append(g.Levels, NewLevel())
 	g.CurrentLevel = &g.Levels[0]
 
-	player, err := NewEntity(40, 25, "player")
+	startX, startY := g.CurrentLevel.Rooms[0].Center()
+	player, err := NewEntity(startX, startY, "player")
 	if err != nil {
 		log.Fatal(err)
 	}
