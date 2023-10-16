@@ -2,7 +2,10 @@ module grogue
 
 go 1.21.1
 
-require github.com/hajimehoshi/ebiten/v2 v2.6.1
+require (
+	github.com/hajimehoshi/ebiten/v2 v2.6.1
+	github.com/norendren/go-fov v1.0.1
+)
 
 require (
 	github.com/ebitengine/purego v0.5.0 // indirect

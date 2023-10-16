@@ -6,7 +6,9 @@ import (
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/norendren/go-fov/fov"
 )
 
 type GameData struct {
@@ -38,6 +40,7 @@ type MapTile struct {
 	PixelY  int
 	Blocked bool
 	Opaque  bool
+	Seen    bool
 	Image   *ebiten.Image
 }
 
@@ -68,6 +71,7 @@ func NewTile(x int, y int, tileType string) (MapTile, error) {
 		PixelY:  y,
 		Blocked: blocked,
 		Opaque:  opaque,
+		Seen:    false,
 		Image:   image,
 	}
 	return tile, nil
@@ -80,14 +84,16 @@ func GetIndexFromCoords(x int, y int) int {
 }
 
 type Level struct {
-	Tiles []MapTile
-	Rooms []RectangularRoom
+	Tiles      []MapTile
+	Rooms      []RectangularRoom
+	PlayerView *fov.View
 }
 
 // Creates a new Level object
 func NewLevel() Level {
 	l := Level{}
 	l.createTiles()
+	l.PlayerView = fov.New()
 	return l
 }
 
@@ -157,10 +163,20 @@ func (level *Level) Draw(screen *ebiten.Image) {
 	gd := NewGameData()
 	for x := 0; x < gd.ScreenWidth; x++ {
 		for y := 0; y < gd.ScreenHeight; y++ {
-			tile := level.Tiles[GetIndexFromCoords(x, y)]
-			op := &ebiten.DrawImageOptions{}
-			op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
-			screen.DrawImage(tile.Image, op)
+			idx := GetIndexFromCoords(x, y)
+			tile := level.Tiles[idx]
+			if level.PlayerView.IsVisible(x, y) {
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
+				screen.DrawImage(tile.Image, op)
+				level.Tiles[idx].Seen = true
+			} else if tile.Seen {
+				op := &colorm.DrawImageOptions{}
+				var colorM colorm.ColorM
+				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
+				colorM.Translate(0, 0, 50, 0.75)
+				colorm.DrawImage(screen, tile.Image, colorM, op)
+			}
 		}
 	}
 }
@@ -245,4 +261,18 @@ func (level *Level) tunnelBetween(first *RectangularRoom, second *RectangularRoo
 		level.createVerticalTunnel(startY, endY, startX)
 		level.createHorizontalTunnel(startX, endX, endY)
 	}
+}
+
+// Determine if tile coordinates are on the screen.
+func (level Level) InBounds(x int, y int) bool {
+	gd := NewGameData()
+	if x < 0 || x > gd.ScreenWidth || y < 0 || y > gd.ScreenHeight {
+		return false
+	}
+	return true
+}
+
+// Determines if a tile at a given coordinate can be seen through.
+func (level Level) IsOpaque(x int, y int) bool {
+	return level.Tiles[GetIndexFromCoords(x, y)].Opaque
 }

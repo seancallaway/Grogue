@@ -24,5 +24,6 @@ func HandleInput(g *Game) {
 	if !tile.Blocked {
 		g.Player.X += dx
 		g.Player.Y += dy
+		g.CurrentLevel.PlayerView.Compute(g.CurrentLevel, g.Player.X, g.Player.Y, 8)
 	}
 }
